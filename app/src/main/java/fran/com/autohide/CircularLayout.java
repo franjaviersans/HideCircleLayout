@@ -18,7 +18,9 @@ import android.view.WindowManager;
  * Created by Nilanchala on 8/3/15.
  */
 public class CircularLayout extends ViewGroup  {
-    int deviceWidth;
+    private int radius = 1;
+    private int circleHeight = 0;
+    private int circleWidth = 0;
 
     public CircularLayout(Context context) {
         this(context, null, 0);
@@ -37,7 +39,6 @@ public class CircularLayout extends ViewGroup  {
         final Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         Point deviceDisplay = new Point();
         display.getSize(deviceDisplay);
-        deviceWidth = deviceDisplay.x;
     }
 
     @Override
@@ -47,86 +48,110 @@ public class CircularLayout extends ViewGroup  {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        final int count = getChildCount();
-        int curWidth, curHeight, curLeft, curTop, maxHeight;
+        int layoutWidth = r - l;
+        int layoutHeight = b - t;
 
-        //get the available size of child view
-        final int childLeft = this.getPaddingLeft();
-        final int childTop = this.getPaddingTop();
-        final int childRight = this.getMeasuredWidth() - this.getPaddingRight();
-        final int childBottom = this.getMeasuredHeight() - this.getPaddingBottom();
-        final int childWidth = childRight - childLeft;
-        final int childHeight = childBottom - childTop;
+        radius = (layoutWidth <= layoutHeight) ? layoutWidth / 3
+                : layoutHeight / 3;
 
-        maxHeight = 0;
-        curLeft = childLeft;
-        curTop = childTop;
+        circleHeight = getHeight();
+        circleWidth = getWidth();
 
-        for (int i = 0; i < count; i++) {
-            View child = getChildAt(i);
 
-            if (child.getVisibility() == GONE)
-                return;
 
-            //Get the maximum size of the child
-            child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.AT_MOST));
-            curWidth = child.getMeasuredWidth();
-            curHeight = child.getMeasuredHeight();
-            //wrap is reach to the end
-            if (curLeft + curWidth >= childRight) {
-                curLeft = childLeft;
-                curTop += maxHeight;
-                maxHeight = 0;
+        //set every child around the corner
+        int num = getChildCount();
+        float angle = 0.0f;
+        float angleDif = 360.0f / num;
+
+        //set every child
+        for(int i=0;i<num;++i){
+            final View child = getChildAt(i);
+            if (child.getVisibility() == GONE) {
+                continue;
             }
-            //do the layout
-            child.layout(curLeft, curTop, curLeft + curWidth, curTop + curHeight);
-            //store the max height
-            if (maxHeight < curHeight)
-                maxHeight = curHeight;
-            curLeft += curWidth;
+
+            //set them around a circle
+            if (angle > 360) angle -= 360;
+            else if (angle < 0) angle += 360;
+
+
+            int width = child.getMeasuredWidth();
+            int height = child.getMeasuredHeight();
+            int x = Math.round((float) (((circleWidth / 2.0) - width / 2.0) + radius
+                    * Math.cos(Math.toRadians(angle))));
+            int y = Math.round((float) (((circleHeight / 2.0) - height / 2.0) + radius
+                    * Math.sin(Math.toRadians(angle))));
+
+            //set the layout of the children
+            child.layout(x, y, x + width, y + height);
+
+            //increment angle
+            angle  += angleDif;
         }
     }
 
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int count = getChildCount();
-        // Measurement will ultimately be computing these values.
-        int maxHeight = 0;
-        int maxWidth = 0;
-        int childState = 0;
-        int mLeftWidth = 0;
-        int rowCount = 0;
+        // Measure child views first
+        int maxChildWidth = 0;
+        int maxChildHeight = 0;
 
-        // Iterate through all children, measuring them and computing our dimensions
-        // from their size.
-        for (int i = 0; i < count; i++) {
+        int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(
+                MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.AT_MOST);
+        int childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(
+                MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.AT_MOST);
+
+        final int childCount = getChildCount();
+        for (int i = 0; i < childCount; i++) {
             final View child = getChildAt(i);
-
-            if (child.getVisibility() == GONE)
+            if (child.getVisibility() == GONE) {
                 continue;
-
-            // Measure the child.
-            measureChild(child, widthMeasureSpec, heightMeasureSpec);
-            maxWidth += Math.max(maxWidth, child.getMeasuredWidth());
-            mLeftWidth += child.getMeasuredWidth();
-
-            if ((mLeftWidth / deviceWidth) > rowCount) {
-                maxHeight += child.getMeasuredHeight();
-                rowCount++;
-            } else {
-                maxHeight = Math.max(maxHeight, child.getMeasuredHeight());
             }
-            childState = combineMeasuredStates(childState, child.getMeasuredState());
+
+            measureChild(child, childWidthMeasureSpec, childHeightMeasureSpec);
+
+            maxChildWidth = Math.max(maxChildWidth, child.getMeasuredWidth());
+            maxChildHeight = Math.max(maxChildHeight, child.getMeasuredHeight());
         }
 
-        // Check against our minimum height and width
-        maxHeight = Math.max(maxHeight, getSuggestedMinimumHeight());
-        maxWidth = Math.max(maxWidth, getSuggestedMinimumWidth());
+        // Then decide what size we want to be
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-        // Report our final dimensions.
-        setMeasuredDimension(resolveSizeAndState(maxWidth, widthMeasureSpec, childState),
-                resolveSizeAndState(maxHeight, heightMeasureSpec, childState << MEASURED_HEIGHT_STATE_SHIFT));
+        int width;
+        int height;
+
+        //Measure Width
+        if (widthMode == MeasureSpec.EXACTLY) {
+            //Must be this size
+            width = widthSize;
+        } else if (widthMode == MeasureSpec.AT_MOST) {
+            //Can't be bigger than...
+            width = Math.min(widthSize, heightSize);
+        } else {
+            //Be whatever you want
+            width = maxChildWidth * 3;
+        }
+
+        //Measure Height
+        if (heightMode == MeasureSpec.EXACTLY) {
+            //Must be this size
+            height = heightSize;
+        } else if (heightMode == MeasureSpec.AT_MOST) {
+            //Can't be bigger than...
+            height = Math.min(heightSize, widthSize);
+        } else {
+            //Be whatever you want
+            height = maxChildHeight * 3;
+        }
+
+        setMeasuredDimension(resolveSize(width, widthMeasureSpec),
+                resolveSize(height, heightMeasureSpec));
+
     }
 }
 

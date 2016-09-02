@@ -76,15 +76,19 @@ public class CircularLayout extends ViewGroup  {
             else if (angle < 0) angle += 360;
 
 
+
+
             int width = child.getMeasuredWidth();
             int height = child.getMeasuredHeight();
-            int x = Math.round((float) (((circleWidth / 2.0) - width / 2.0) + radius
+            int x = Math.round((float) (((circleWidth / 2.0)) + (radius)
                     * Math.cos(Math.toRadians(angle))));
-            int y = Math.round((float) (((circleHeight / 2.0) - height / 2.0) + radius
+            int y = Math.round((float) (((circleHeight / 2.0)) + (radius)
                     * Math.sin(Math.toRadians(angle))));
 
+            System.out.println(angle + "  "+x+" "+y);
+
             //set the layout of the children
-            child.layout(x, y, x + width, y + height);
+            child.layout(x - width/2, y - height / 2, x + width/2, y  + height/2);
 
             //increment angle
             angle  += angleDif;

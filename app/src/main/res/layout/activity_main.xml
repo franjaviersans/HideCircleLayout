@@ -44,29 +44,40 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Button1"
+                android:text="B1"
                 android:id="@+id/button1"
-                />
+                android:enabled="false"
+                android:clickable="false"
+                android:alpha="0.5" />
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Button2"
+                android:text="B2"
                 android:id="@+id/button2"
+                android:enabled="false"
+                android:clickable="false"
+                android:alpha="0.5"
                 />
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Button3"
+                android:text="B3"
                 android:id="@+id/button3"
+                android:enabled="false"
+                android:clickable="false"
+                android:alpha="0.5"
                 />
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Button4"
+                android:text="B1"
                 android:id="@+id/button4"
+                android:enabled="false"
+                android:clickable="false"
+                android:alpha="0.5"
                 />
         </fran.com.autohide.CircularLayout>
 

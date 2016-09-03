@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         String tag;
 
         //adds buttons programatically
-        for (int i = 0; i <= 3; i++) {
+        for (int i = 5; i <= 8; i++) {
             tag = "B" + i;
             View tagView = layoutInflater.inflate(R.layout.imageview_layout, null, false);
 
@@ -37,6 +37,12 @@ public class MainActivity extends AppCompatActivity {
             B.setAlpha(0.5f);
             B.setEnabled(false);
             B.setClickable(false);
+            B.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //System.out.println(">>>>>>>>>>>>>>>>>>>>>Clicking button ");
+                }
+            });
 
             CirLay.addView(tagView);
         }

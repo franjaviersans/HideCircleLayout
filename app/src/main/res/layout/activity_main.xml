@@ -73,7 +73,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="B1"
+                android:text="B4"
                 android:id="@+id/button4"
                 android:enabled="false"
                 android:clickable="false"

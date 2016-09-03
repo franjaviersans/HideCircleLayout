@@ -4,23 +4,43 @@ package fran.com.autohide;
  * Created by Francisco on 1/9/2016.
  */
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.util.AttributeSet;
 import android.view.Display;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
 
 
 /**
  * Created by Nilanchala on 8/3/15.
  */
 public class CircularLayout extends ViewGroup  {
-    private int radius = 1;
-    private int circleHeight = 0;
-    private int circleWidth = 0;
+    private int miRadius = 1;
+    private int miCircleHeight = 0;
+    private int miCircleWidth = 0;
+    private boolean mbRotate = false;
+    private float miOldX = 0.0f, miOldY = 0.0f;
+    //set and get functions necessary for object animation
+    private float mfBeginAngle = 0.0f;
+    float getMfBeginAngle(){
+        return mfBeginAngle;
+    }
+
+    void setMfBeginAngle(float angle){
+        mfBeginAngle = angle;
+        rotateChildes();
+    }
+
+    private GestureDetector mGestureDetector;
+    private ObjectAnimator mAnimator = null;
 
     public CircularLayout(Context context) {
         this(context, null, 0);
@@ -39,6 +59,7 @@ public class CircularLayout extends ViewGroup  {
         final Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         Point deviceDisplay = new Point();
         display.getSize(deviceDisplay);
+        mGestureDetector = new GestureDetector(getContext(), new MyGesture());
     }
 
     @Override
@@ -51,48 +72,15 @@ public class CircularLayout extends ViewGroup  {
         int layoutWidth = r - l;
         int layoutHeight = b - t;
 
-        radius = (layoutWidth <= layoutHeight) ? layoutWidth / 3
+        miRadius = (layoutWidth <= layoutHeight) ? layoutWidth / 3
                 : layoutHeight / 3;
 
-        circleHeight = getHeight();
-        circleWidth = getWidth();
+        miCircleHeight = getHeight();
+        miCircleWidth = getWidth();
 
 
 
-        //set every child around the corner
-        int num = getChildCount();
-        float angle = 0.0f;
-        float angleDif = 360.0f / num;
-
-        //set every child
-        for(int i=0;i<num;++i){
-            final View child = getChildAt(i);
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
-
-            //set them around a circle
-            if (angle > 360) angle -= 360;
-            else if (angle < 0) angle += 360;
-
-
-
-
-            int width = child.getMeasuredWidth();
-            int height = child.getMeasuredHeight();
-            int x = Math.round((float) (((circleWidth / 2.0)) + (radius)
-                    * Math.cos(Math.toRadians(angle))));
-            int y = Math.round((float) (((circleHeight / 2.0)) + (radius)
-                    * Math.sin(Math.toRadians(angle))));
-
-            System.out.println(angle + "  "+x+" "+y);
-
-            //set the layout of the children
-            child.layout(x - width/2, y - height / 2, x + width/2, y  + height/2);
-
-            //increment angle
-            angle  += angleDif;
-        }
+        rotateChildes();
     }
 
 
@@ -157,5 +145,187 @@ public class CircularLayout extends ViewGroup  {
                 resolveSize(height, heightMeasureSpec));
 
     }
+
+
+    //Intercept some touch events
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev)
+    {
+        //System.out.println("Intercept");
+        onTouchEvent(ev);
+        return false; //don't consume the event. It is not for this view
+    }
+
+
+    //get events on touch
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+
+        if (mAnimator != null && mAnimator.isRunning()) {
+            mAnimator.cancel();
+            mAnimator = null;
+        }
+
+        int action = motionEvent.getAction();
+        //System.out.println("Circle->AJA");
+
+        if(mGestureDetector.onTouchEvent(motionEvent)) return true;
+
+        switch(action)
+        {
+            case(MotionEvent.ACTION_DOWN):
+                //System.out.println("Circle->Down");
+
+                miOldX = motionEvent.getX();
+                miOldY = motionEvent.getY();
+
+
+                mbRotate = true;
+
+                return true;
+
+
+
+            case(MotionEvent.ACTION_MOVE):
+               // System.out.println("Circle->MOVE");
+
+
+
+                return false; //don't consume the event. It is not for this view
+
+
+            case(MotionEvent.ACTION_UP):
+                mbRotate = false;
+                //System.out.println("Circle->UP");
+
+                return false; //don't consume the event. It is not for this view
+
+            case(MotionEvent.ACTION_OUTSIDE):
+               // System.out.println("Circle->OUTSIDE");
+                return false; //don't consume the event. It is not for this view
+
+            default:
+                return false; //don't consume the event. It is not for this view
+        }
+    }
+
+    void rotateChildes() {
+        //set every child around the corner
+        int num = getChildCount();
+        float angle = mfBeginAngle;
+        float angleDif = 360.0f / num;
+
+        //set every child
+        for(int i=0;i<num;++i){
+            final View child = getChildAt(i);
+            if (child.getVisibility() == GONE) {
+                continue;
+            }
+
+            //set them around a circle
+            if (angle > 360) angle -= 360;
+            else if (angle < 0) angle += 360;
+
+
+
+
+            int width = child.getMeasuredWidth();
+            int height = child.getMeasuredHeight();
+            int x = Math.round((float) (((miCircleWidth / 2.0)) + (miRadius)
+                    * Math.cos(Math.toRadians(angle))));
+            int y = Math.round((float) (((miCircleHeight / 2.0)) + (miRadius)
+                    * Math.sin(Math.toRadians(angle))));
+
+
+            //set the layout of the children
+            child.layout(x - width/2, y - height / 2, x + width/2, y  + height/2);
+
+            //increment angle
+            angle  += angleDif;
+        }
+    }
+
+
+    private class MyGesture extends GestureDetector.SimpleOnGestureListener{
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            //System.out.println("Circle->Fling!!!!");
+
+            //rotate with the velocity
+            float rotationAngle;
+            float newY = e2.getY();
+
+            float factor = 0.05f;
+
+            if(newY > miOldY)   rotationAngle = velocityY * factor;
+            else                rotationAngle = -velocityY * factor;
+
+            int velocity = (int)Math.min(1000, Math.abs(velocityY));
+            animateRotation(mfBeginAngle + rotationAngle, 1500);
+            return true;
+
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY){
+            //System.out.println("Circle->Scroll!!!!");
+
+            float newX = e2.getX();
+            float newY = e2.getY();
+
+            //get the angle by polar coordinates
+            double oldAngle = Math.atan2(miOldY - miCircleHeight/2.0, miOldX - miCircleWidth/2.0) * 180.0 / Math.PI;
+            double angle = Math.atan2(newY - miCircleHeight/2.0, newX - miCircleWidth/2.0) * 180.0 / Math.PI;
+            double diff = angle - oldAngle;
+
+            //If there is a difference, rotate!!!
+            if(Math.abs(diff) > 0.0001){
+                mfBeginAngle += diff;
+                rotateChildes();
+            }
+
+
+            miOldX = newX;
+            miOldY = newY;
+
+            return true;
+        }
+    }
+
+    private void animateRotation(float endDegree, int duration) {
+        if (mAnimator != null && mAnimator.isRunning() || Math.abs(mfBeginAngle - endDegree) < 1) {
+            return;
+        }
+
+        mAnimator = ObjectAnimator.ofFloat(CircularLayout.this, "mfBeginAngle", mfBeginAngle, endDegree);
+        mAnimator.setDuration(duration);
+        mAnimator.setInterpolator(new DecelerateInterpolator());
+        //System.out.println("Empezo " + endDegree+ " "+ mAnimator.getPropertyName());
+
+        mAnimator.addListener(new Animator.AnimatorListener() {
+
+            @Override
+            public void onAnimationStart(Animator animation) {
+                //System.out.println("Empezo "+mfBeginAngle);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                //System.out.println("Termin "+mfBeginAngle);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                //System.out.println("Cancelado "+mfBeginAngle);
+            }
+        });
+        mAnimator.start();
+    }
+
+
 }
 

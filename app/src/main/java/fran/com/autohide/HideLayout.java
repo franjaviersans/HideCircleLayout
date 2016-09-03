@@ -22,7 +22,7 @@ import android.widget.LinearLayout;
 /**
  * Created by Francisco on 1/9/2016.
  */
-public class HideLayout extends LinearLayout implements View.OnTouchListener {
+public class HideLayout extends LinearLayout {
     private int deviceWidth =1;
     private int mHideDistance;
     private int mNormalDistance;
@@ -72,8 +72,6 @@ public class HideLayout extends LinearLayout implements View.OnTouchListener {
         deviceWidth = deviceDisplay.x;
         mNormalDistance = deviceDisplay.x / 2;
         mHideDistance = deviceDisplay.x * 3 / 4;
-
-        this.setOnTouchListener(this);
     }
 
     @Override
@@ -104,9 +102,8 @@ public class HideLayout extends LinearLayout implements View.OnTouchListener {
 
     //get events on touch. Hide, unhide and passing the touch event if necessary
     @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
+    public boolean onTouchEvent(MotionEvent motionEvent) {
         int action = motionEvent.getAction();
-        System.out.println("AJA");
 
         if(mOpen){
             //reset autohide
@@ -118,7 +115,6 @@ public class HideLayout extends LinearLayout implements View.OnTouchListener {
         switch(action)
         {
             case(MotionEvent.ACTION_DOWN):
-                System.out.println("Down");
                 int x = (int) motionEvent.getX();
 
                 if(mOpen){
@@ -172,7 +168,6 @@ public class HideLayout extends LinearLayout implements View.OnTouchListener {
                         handler.postDelayed(runnable, 3000);
                         return true;
                     }else{
-                        System.out.println("HELP");
                         //if touch outside menu, you don't do anything
                         return false; //don't consume the event. It is not for this view
                     }
@@ -183,14 +178,10 @@ public class HideLayout extends LinearLayout implements View.OnTouchListener {
 
 
             case(MotionEvent.ACTION_UP):
-                System.out.println("UP");
 
-                /*layoutClose();
-                view.requestLayout();*/
                 return false; //don't consume the event. It is not for this view
 
             case(MotionEvent.ACTION_OUTSIDE):
-                System.out.println("This will help");
                 return false; //don't consume the event. It is not for this view
 
             default:

@@ -36,13 +36,53 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/tagLayout" >
-
         <fran.com.autohide.CircularLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/circularLayout"
-            android:layout_gravity="center_vertical" />
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/circularLayout">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="B1"
+                android:id="@+id/button1"
+                android:enabled="false"
+                android:clickable="false"
+                android:alpha="0.5" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="B2"
+                android:id="@+id/button2"
+                android:enabled="false"
+                android:clickable="false"
+                android:alpha="0.5"
+                />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="B3"
+                android:id="@+id/button3"
+                android:enabled="false"
+                android:clickable="false"
+                android:alpha="0.5"
+                />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="B4"
+                android:id="@+id/button4"
+                android:enabled="false"
+                android:clickable="false"
+                android:alpha="0.5"
+                />
+        </fran.com.autohide.CircularLayout>
+
     </fran.com.autohide.HideLayout>
+
 
 
 </FrameLayout>
